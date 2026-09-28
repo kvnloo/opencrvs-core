@@ -12,8 +12,9 @@ import {
   TAB_GROUPS,
   WORKQUEUE_TABS
 } from '@client/components/interface/WorkQueueTabs'
-import { ScopeType } from '@opencrvs/commons/client'
-import { usePermissions } from './useAuthorization'
+import { hasAnyScope, Scope, ScopeType } from '@opencrvs/commons/client'
+import { useSelector } from 'react-redux'
+import { getScope } from '@client/profile/profileSelectors'
 
 interface Tab {
   name: string
@@ -82,27 +83,29 @@ const routeAccess: NavigationConfig[] = [
   }
 ]
 
-export function useNavigation() {
-  const { hasAnyScope } = usePermissions()
+export function getNavigationRoutes(userScopes: Scope[]) {
+  const hasAccess = (scopes?: ScopeType[]) =>
+    !scopes || scopes.length === 0 || hasAnyScope(userScopes, scopes)
 
-  const hasAccess = (scopes?: ScopeType[]) => {
-    return !scopes || scopes.length === 0 || hasAnyScope(scopes)
-  }
-
-  const routes = routeAccess.reduce((acc, group) => {
+  return routeAccess.reduce((acc, group) => {
     if (!hasAccess(group.scopes)) {
       return acc
     }
-    const groupAccess = {
+
+    acc.push({
       name: group.name,
       tabs: group.tabs
         .filter((tab) => hasAccess(tab.scopes))
         .map((filteredTab) => ({
           name: filteredTab.name
         }))
-    }
-    acc.push(groupAccess)
+    })
+
     return acc
   }, [] as NavigationConfig[])
-  return { routes }
+}
+
+export function useNavigation() {
+  const userScopes = useSelector(getScope) ?? []
+  return { routes: getNavigationRoutes(userScopes) }
 }
