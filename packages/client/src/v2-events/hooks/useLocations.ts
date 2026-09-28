@@ -111,7 +111,10 @@ export function useLocations() {
       }
     },
     getLocation: {
-      useQuery: (id: string, options?: { refetchInterval?: number }) => {
+      useQuery: (
+        id: string,
+        options?: { refetchInterval?: number; enabled?: boolean }
+      ) => {
         const { queryFn, ...rest } =
           trpcOptionsProxy.locations.get.queryOptions({ id })
         // The queryFn override above returns a `ClientLocation` (flattened
