@@ -21,7 +21,11 @@ import { SettingsNavigation } from '@opencrvs/components/lib/icons/SettingsNavig
 import { LeftNavigation } from '@opencrvs/components/lib/SideNavigation/LeftNavigation'
 import { NavigationGroup } from '@opencrvs/components/lib/SideNavigation/NavigationGroup'
 import { NavigationItem } from '@opencrvs/components/lib/SideNavigation/NavigationItem'
-import { todayISO, WorkqueueConfig } from '@opencrvs/commons/client'
+import {
+  hasScope,
+  todayISO,
+  WorkqueueConfig
+} from '@opencrvs/commons/client'
 import { buttonMessages } from '@client/i18n/messages'
 import { storage } from '@client/storage'
 import { WORKQUEUE_TABS } from '@client/components/interface/WorkQueueTabs'
@@ -110,8 +114,9 @@ function SidebarComponent({
 }) {
   const { slug: workqueueSlug } = useTypedParams(ROUTES.V2.WORKQUEUES.WORKQUEUE)
   const intl = useIntl()
-  const scopes = useSelector(getScope)
+  const scopes = useSelector(getScope) ?? []
   const { getLocation } = useLocations()
+  const canReadLocations = hasScope(scopes, 'organisation.read-locations')
 
   const { getOutbox } = useEvents()
   const outbox = getOutbox()
@@ -154,12 +159,16 @@ function SidebarComponent({
   // The sidebar shows the current user's current office — a present-tense
   // surface, so resolve today's name rather than reading the flattened field
   // (which the client cache strips; see `toClientLocation`).
-  const primaryOffice = userDetails?.primaryOfficeId
-    ? resolveLocationName(
-        getLocation.useQuery(userDetails.primaryOfficeId).data,
-        todayISO()
-      )
-    : undefined
+  const primaryOfficeQuery = getLocation.useQuery(
+    userDetails?.primaryOfficeId ?? '',
+    {
+      enabled: Boolean(userDetails?.primaryOfficeId) && canReadLocations
+    }
+  )
+  const primaryOffice =
+    userDetails?.primaryOfficeId && canReadLocations
+      ? resolveLocationName(primaryOfficeQuery.data, todayISO())
+      : undefined
 
   const avatar = (
     <Avatar aria-hidden name={name} size="lg" src={userDetails?.avatar} />
