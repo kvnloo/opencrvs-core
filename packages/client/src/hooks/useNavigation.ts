@@ -12,7 +12,11 @@ import {
   TAB_GROUPS,
   WORKQUEUE_TABS
 } from '@client/components/interface/WorkQueueTabs'
-import { hasAnyScope, Scope, ScopeType } from '@opencrvs/commons/client'
+import {
+  EncodedScope,
+  hasAnyScope,
+  ScopeType
+} from '@opencrvs/commons/client'
 import { useSelector } from 'react-redux'
 import { getScope } from '@client/profile/profileSelectors'
 
@@ -83,7 +87,7 @@ const routeAccess: NavigationConfig[] = [
   }
 ]
 
-export function getNavigationRoutes(userScopes: Scope[]) {
+export function getNavigationRoutes(userScopes: EncodedScope[]) {
   const hasAccess = (scopes?: ScopeType[]) =>
     !scopes || scopes.length === 0 || hasAnyScope(userScopes, scopes)
 
