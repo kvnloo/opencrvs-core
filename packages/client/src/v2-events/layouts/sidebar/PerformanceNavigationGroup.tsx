@@ -15,9 +15,11 @@ import { useNavigate } from 'react-router-dom'
 import { Icon } from '@opencrvs/components/lib/Icon'
 import { NavigationGroup } from '@opencrvs/components/lib/SideNavigation/NavigationGroup'
 import { NavigationItem } from '@opencrvs/components/lib/SideNavigation/NavigationItem'
-import { usePermissions } from '@client/hooks/useAuthorization'
 import { ROUTES } from '@client/v2-events/routes'
 import { useDashboards } from '@client/hooks/useDashboards'
+import { useSelector } from 'react-redux'
+import { getScope } from '@client/profile/profileSelectors'
+import { hasScope } from '@opencrvs/commons/client'
 
 /**
  * Based on packages/client/src/components/interface/Navigation.tsx
@@ -31,12 +33,12 @@ export function PerformanceNavigationGroup({
 }) {
   const intl = useIntl()
   const navigate = useNavigate()
-  const { hasScope } = usePermissions()
+  const userScopes = useSelector(getScope) ?? []
   const allowedDashboardIds = useDashboards()
 
   return (
     <>
-      {hasScope('performance.read-dashboards') && (
+      {hasScope(userScopes, 'performance.read-dashboards') && (
         <NavigationGroup>
           {
             <>
